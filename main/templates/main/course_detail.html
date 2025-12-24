@@ -1,0 +1,235 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ course.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .course-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .course-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .course-info {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        margin-top: 1rem;
+    }
+    
+    .category-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+    }
+    
+    .course-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .main-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .sidebar {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        height: fit-content;
+    }
+    
+    .lesson-list {
+        list-style: none;
+    }
+    
+    .lesson-item {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .lesson-item:last-child {
+        border-bottom: none;
+    }
+    
+    .lesson-item a {
+        text-decoration: none;
+        color: #333;
+        flex: 1;
+    }
+    
+    .lesson-item a:hover {
+        color: #3498db;
+    }
+    
+    .lesson-completed {
+        color: #27ae60;
+        font-weight: bold;
+    }
+    
+    .progress-bar {
+        background: #eee;
+        height: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-fill {
+        background: #27ae60;
+        height: 100%;
+        transition: width 0.3s;
+    }
+    
+    .comment-section {
+        margin-top: 3rem;
+    }
+    
+    .comment {
+        background: #f9f9f9;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+    
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .comment-form textarea {
+        width: 100%;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+    }
+    
+    .comment-form button {
+        margin-top: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="course-header">
+    <h1>{{ course.name }}</h1>
+    <div class="course-info">
+        <span class="category-badge">{{ course.category.name }}</span>
+        <span>👤 {{ course.author.username }}</span>
+        <span>📅 {{ course.created_at|date:"d.m.Y" }}</span>
+    </div>
+    
+    {% if user == course.author %}
+    <div class="course-actions">
+        <a href="{% url 'course_edit' course.id %}" class="btn">✏️ Редактировать</a>
+        <a href="{% url 'lesson_create' course.id %}" class="btn btn-success">➕ Добавить урок</a>
+        <a href="{% url 'course_delete' course.id %}" class="btn btn-danger">🗑️ Удалить курс</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="content-grid">
+    <div class="main-content">
+        <h2>Описание курса</h2>
+        <p>{{ course.description }}</p>
+        
+        <div class="comment-section">
+            <h2>💬 Комментарии ({{ comments.count }})</h2>
+            
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'comment_create' course.id %}" class="comment-form">
+                {% csrf_token %}
+                <textarea name="text" placeholder="Напишите свой комментарий..." required></textarea>
+                <button type="submit" class="btn">Отправить</button>
+            </form>
+            {% else %}
+            <p>Войдите, чтобы оставить комментарий</p>
+            {% endif %}
+            
+            <div style="margin-top: 2rem;">
+                {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <strong>{{ comment.author.username }}</strong>
+                        <span>{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <p>{{ comment.text }}</p>
+                    
+                    {% if user == comment.author %}
+                    <div style="margin-top: 0.5rem;">
+                        <a href="{% url 'comment_delete' comment.id %}" style="color: #e74c3c; font-size: 0.9rem;">Удалить</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p style="color: #666; text-align: center; padding: 2rem;">Пока нет комментариев</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <h3>📖 Уроки курса</h3>
+        
+        {% if user.is_authenticated %}
+        <div style="margin: 1rem 0;">
+            <strong>Прогресс: {{ progress_percent }}%</strong>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ progress_percent }}%"></div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if lessons %}
+        <ul class="lesson-list">
+            {% for lesson in lessons %}
+            <li class="lesson-item">
+                <a href="{% url 'lesson_detail' lesson.id %}">
+                    {{ lesson.order }}. {{ lesson.title }}
+                </a>
+                {% if lesson.id in completed_lessons %}
+                <span class="lesson-completed">✓</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: #666;">В этом курсе пока нет уроков</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

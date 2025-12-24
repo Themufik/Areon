@@ -1,0 +1,110 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{% if course %}Редактировать курс{% else %}Создать курс{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .form-container h1 {
+        margin-bottom: 2rem;
+        color: #2c3e50;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+    
+    .form-group textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{% if course %}✏️ Редактировать курс{% else %}➕ Создать новый курс{% endif %}</h1>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="name">Название курса *</label>
+            <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                value="{% if course %}{{ course.name }}{% endif %}"
+                required
+                maxlength="200"
+                placeholder="Например: Основы программирования на Python"
+            >
+        </div>
+        
+        <div class="form-group">
+            <label for="category">Категория *</label>
+            <select id="category" name="category" required>
+                <option value="">Выберите категорию</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}" 
+                        {% if course and course.category.id == cat.id %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Описание курса *</label>
+            <textarea 
+                id="description" 
+                name="description" 
+                required
+                placeholder="Опишите, чему научатся студенты в этом курсе..."
+            >{% if course %}{{ course.description }}{% endif %}</textarea>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">
+                {% if course %}💾 Сохранить изменения{% else %}✅ Создать курс{% endif %}
+            </button>
+            <a href="{% if course %}{% url 'course_detail' course.id %}{% else %}{% url 'course_list' %}{% endif %}" 
+               class="btn">
+                ❌ Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

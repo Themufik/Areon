@@ -1,0 +1,109 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Категории курсов{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+    
+    .category-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .category-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .category-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .category-card h3 {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+    
+    .category-card-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .course-count {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #3498db;
+        margin-bottom: 0.5rem;
+    }
+    
+    .course-label {
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📚 Категории курсов</h1>
+    <p>Выберите интересующую вас категорию</p>
+</div>
+
+<div class="category-grid">
+    {% for category in categories %}
+        <a href="{% url 'course_list' %}?category={{ category.id }}" class="category-card">
+            <div class="category-card-header">
+                <div class="category-icon">
+                    {% if 'Программирование' in category.name %}💻
+                    {% elif 'Дизайн' in category.name %}🎨
+                    {% elif 'Маркетинг' in category.name %}📊
+                    {% elif 'Бизнес' in category.name %}💼
+                    {% elif 'Язык' in category.name %}🌍
+                    {% elif 'Музыка' in category.name %}🎵
+                    {% elif 'Фитнес' in category.name %}💪
+                    {% elif 'Фото' in category.name %}📸
+                    {% else %}📖
+                    {% endif %}
+                </div>
+                <h3>{{ category.name }}</h3>
+            </div>
+            <div class="category-card-body">
+                <div class="course-count">{{ category.course_count }}</div>
+                <div class="course-label">курсов</div>
+            </div>
+        </a>
+    {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: #666;">
+            Категории не найдены
+        </p>
+    {% endfor %}
+</div>
+{% endblock %}

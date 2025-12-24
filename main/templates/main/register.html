@@ -1,0 +1,102 @@
+<!-- register.html -->
+{% extends 'main/base.html' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 400px;
+        margin: 3rem auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .auth-container h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #2c3e50;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+    
+    .form-group .helptext {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.3rem;
+    }
+    
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+        color: #e74c3c;
+        font-size: 0.9rem;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .auth-footer a {
+        color: #3498db;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>📝 Регистрация</h1>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <div class="helptext">{{ field.help_text|safe }}</div>
+                {% endif %}
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <button type="submit" class="btn btn-success" style="width: 100%;">
+            Зарегистрироваться
+        </button>
+    </form>
+    
+    <div class="auth-footer">
+        Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+    </div>
+</div>
+{% endblock %}

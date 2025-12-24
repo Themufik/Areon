@@ -1,0 +1,167 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{% if lesson %}Редактировать урок{% else %}Создать урок{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-container h1 {
+        margin-bottom: 2rem;
+        color: #2c3e50;
+    }
+
+    .course-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+
+    .form-group textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .form-group textarea.content {
+        min-height: 300px;  /* Больше для контента */
+    }
+
+    .form-group input[type="number"] {
+        width: 100px;
+    }
+
+    .form-group input[type="file"] {
+        padding: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .hint {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{% if lesson %}✏️ Редактировать урок{% else %}➕ Создать урок{% endif %}</h1>
+
+    <div class="course-info">
+        <strong>Курс:</strong> {{ course.name }}
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="title">Название урока *</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                value="{% if lesson %}{{ lesson.title }}{% endif %}"
+                required
+                maxlength="200"
+                placeholder="Например: Переменные и типы данных"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="order">Порядковый номер *</label>
+            <input
+                type="number"
+                id="order"
+                name="order"
+                value="{% if lesson %}{{ lesson.order }}{% else %}{{ next_order }}{% endif %}"
+                required
+                min="1"
+            >
+            <div class="hint">Определяет порядок урока в курсе (1, 2, 3...)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Краткое описание урока *</label>
+            <textarea
+                id="description"
+                name="description"
+                required
+                placeholder="Краткое описание того, что студенты изучат..."
+            >{% if lesson %}{{ lesson.description }}{% endif %}</textarea>
+            <div class="hint">Это краткое описание, которое видно в списке уроков</div>
+        </div>
+
+        <div class="form-group">
+            <label for="content">Содержание урока *</label>
+            <textarea
+                id="content"
+                name="content"
+                class="content"
+                required
+                placeholder="Полный текст урока, объяснения, примеры кода и т.д..."
+            >{% if lesson %}{{ lesson.content }}{% endif %}</textarea>
+            <div class="hint">Основной материал урока - теория, примеры, задания</div>
+        </div>
+
+        <div class="form-group">
+            <label for="file">Дополнительные материалы (видео, PDF, документ)</label>
+            <input
+                type="file"
+                id="file"
+                name="file"
+                accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.zip"
+            >
+            {% if lesson and lesson.file %}
+                <div class="hint">
+                    Текущий файл: <a href="{{ lesson.file.url }}" target="_blank">{{ lesson.file.name }}</a>
+                </div>
+            {% endif %}
+            <div class="hint">Необязательно - можно прикрепить видео, презентацию или другие файлы</div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">
+                {% if lesson %}💾 Сохранить изменения{% else %}✅ Создать урок{% endif %}
+            </button>
+            <a href="{% if lesson %}{% url 'lesson_detail' lesson.id %}{% else %}{% url 'course_detail' course.id %}{% endif %}"
+               class="btn">
+                ❌ Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

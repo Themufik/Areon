@@ -1,0 +1,204 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .breadcrumb {
+        margin-bottom: 2rem;
+        color: #666;
+    }
+
+    .breadcrumb a {
+        color: #3498db;
+        text-decoration: none;
+    }
+
+    .lesson-header {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .lesson-header h1 {
+        margin-bottom: 1rem;
+    }
+
+    .lesson-meta {
+        display: flex;
+        gap: 2rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .lesson-description {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-top: 1rem;
+        font-style: italic;
+        color: #666;
+    }
+
+    .lesson-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .lesson-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .lesson-content h2 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+
+    .lesson-text {
+        line-height: 1.8;
+        font-size: 1.05rem;
+        white-space: pre-line;
+    }
+
+    .lesson-file {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 5px;
+        margin-top: 2rem;
+    }
+
+    .lesson-file a {
+        color: #3498db;
+        text-decoration: none;
+        font-size: 1.1rem;
+    }
+
+    .navigation {
+        display: flex;
+        justify-content: space-between;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .nav-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .complete-section {
+        text-align: center;
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .completed-badge {
+        display: inline-block;
+        background: #27ae60;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'index' %}">Главная</a> /
+    <a href="{% url 'course_list' %}">Курсы</a> /
+    <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a> /
+    {{ lesson.title }}
+</div>
+
+<div class="lesson-header">
+    <h1>{{ lesson.order }}. {{ lesson.title }}</h1>
+
+    <div class="lesson-description">
+        📝 {{ lesson.description }}
+    </div>
+
+    <div class="lesson-meta">
+        <span>📚 {{ course.name }}</span>
+        <span>📅 {{ lesson.created_at|date:"d.m.Y" }}</span>
+        {% if is_completed %}
+            <span class="completed-badge">✓ Завершен</span>
+        {% endif %}
+    </div>
+
+    {% if user == course.author %}
+    <div class="lesson-actions">
+        <a href="{% url 'lesson_edit' lesson.id %}" class="btn">✏️ Редактировать</a>
+        <a href="{% url 'lesson_delete' lesson.id %}" class="btn btn-danger">🗑️ Удалить</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="lesson-content">
+    <h2>📖 Материал урока</h2>
+    <div class="lesson-text">{{ lesson.content }}</div>
+
+    {% if lesson.file %}
+    <div class="lesson-file">
+        <strong>📎 Дополнительные материалы:</strong><br>
+        <a href="{{ lesson.file.url }}" target="_blank" download>
+            📥 Скачать файл ({{ lesson.file.name }})
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+<div class="complete-section">
+    <h3>{% if is_completed %}🎉 Вы завершили этот урок!{% else %}Завершите урок{% endif %}</h3>
+    <form method="POST" action="{% url 'lesson_complete' lesson.id %}" style="margin-top: 1rem;">
+        {% csrf_token %}
+        <button type="submit" class="btn {% if is_completed %}btn-danger{% else %}btn-success{% endif %}">
+            {% if is_completed %}
+                ❌ Отменить завершение
+            {% else %}
+                ✅ Отметить как завершенный
+            {% endif %}
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<div class="navigation">
+    <div class="nav-button">
+        {% if prev_lesson %}
+            <a href="{% url 'lesson_detail' prev_lesson.id %}" class="btn">
+                ⬅️ Предыдущий урок
+            </a>
+        {% else %}
+            <span style="color: #ccc;">⬅️ Предыдущий урок</span>
+        {% endif %}
+    </div>
+
+    <a href="{% url 'course_detail' course.id %}" class="btn">
+        📚 Вернуться к курсу
+    </a>
+
+    <div class="nav-button">
+        {% if next_lesson %}
+            <a href="{% url 'lesson_detail' next_lesson.id %}" class="btn btn-success">
+                Следующий урок ➡️
+            </a>
+        {% else %}
+            <span style="color: #ccc;">Следующий урок ➡️</span>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
